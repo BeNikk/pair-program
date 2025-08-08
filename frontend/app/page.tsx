@@ -63,9 +63,9 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-none">
-                  Code
+                  Pair
                   <br />
-                  <span className="text-gray-500">Together</span>
+                  <span className="text-gray-500">Programmer</span>
                 </h1>
               </div>
             </div>
