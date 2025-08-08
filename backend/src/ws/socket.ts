@@ -24,20 +24,27 @@ export function setupWebSocket(server: http.Server) {
         currentRoomId = roomId;
         currentUserName = userName;
         if (!rooms[roomId]) {
-          rooms[roomId] = { clients: new Set(), code: "" };
+          rooms[roomId] = { clients: new Set(), code: "", users: new Map() };
         }
         rooms[roomId].clients.add(ws);
+        rooms[roomId].users.set(ws, userName);
         ws.send(
           JSON.stringify({
             type: "CODE_UPDATE",
             code: rooms[roomId].code,
           })
         );
+        ws.send(
+          JSON.stringify({
+            type: "USER_LIST",
+            users: Array.from(rooms[roomId].users.values()),
+          })
+        );
         broadcast(
           roomId,
           {
             type: "USER_JOINED",
-            userName,
+            userName: currentUserName,
           },
           rooms,
           ws
@@ -73,6 +80,15 @@ export function setupWebSocket(server: http.Server) {
 function leaveRoom(ws: WebSocket, roomId: string, userName: string | null) {
   if (!rooms[roomId]) return;
   rooms[roomId].clients.delete(ws);
+  rooms[roomId].users.delete(ws);
+  broadcast(
+    roomId,
+    {
+      type: "USER_LIST",
+      users: Array.from(rooms[roomId].users.values()),
+    },
+    rooms
+  );
 
   broadcast(
     roomId,
