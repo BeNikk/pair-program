@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {  Hash, ArrowRight, Code2, Terminal } from "lucide-react";
 import { ModeToggle } from "@/components/theme-switcher";
+import { GridPattern } from "@/components/magicui/grid-pattern";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const router = useRouter();
@@ -23,6 +25,9 @@ export default function Home() {
   function validate() {
     if (!room || room.trim().length < 2)
       return "Room name must be at least 2 characters";
+    if(room.indexOf(' ') >= 0){
+      return "No spaces in the room name";
+    }
   }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,16 +38,20 @@ export default function Home() {
     setIsLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    router.push(
-      `/room/${encodeURIComponent(room.trim())}
-      )}`
-    );
+    router.push(`/room/${room}`);
   }
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-foreground flex flex-col items-center justify-center px-6 py-12 relative">
-       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-
+      <GridPattern
+        width={20}
+        height={20}
+        x={-1}
+        y={-1}
+        className={cn(
+          "[mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)] ",
+        )}
+      />
       <div className="absolute top-6 right-6 z-10">
         <ModeToggle /> 
       </div>
@@ -120,9 +129,6 @@ export default function Home() {
                   type="submit"
                   disabled={isLoading}
                   className="w-full h-11 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 dark:text-black text-white font-medium transition-colors"
-                  onClick={()=>{
-                    router.push(`/room/${room}`)
-                  }}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

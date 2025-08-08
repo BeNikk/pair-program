@@ -9,7 +9,7 @@ export default function RoomIdPage({
   const { id } = use(params);
   return(
     <div>
-        this is {id} page
+        this is {id}
     </div>
   )
 }
