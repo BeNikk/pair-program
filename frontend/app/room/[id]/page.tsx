@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ModeToggle } from "@/components/theme-switcher";
 
 export default function RoomIdPage({
   params,
@@ -31,8 +32,10 @@ export default function RoomIdPage({
   const [users, setUsers] = useState<string[]>([]);
   const [code, setCode] = useState("// Start coding...");
   const isUpdatingFromServer = useRef(false);
+  const [question, setQuestion] = useState(null);
+
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
+    const ws = new WebSocket("wss://pair-program-1.onrender.com");
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
@@ -48,6 +51,9 @@ export default function RoomIdPage({
             isUpdatingFromServer.current = true;
             setCode(data.code);
           }
+          break;
+        case "QUESTION_UPDATE":
+          setQuestion(data.question);
           break;
         default:
           break;
@@ -102,9 +108,9 @@ export default function RoomIdPage({
       .toUpperCase()
       .slice(0, 2);
   };
-  function clearCode(){
+  function clearCode() {
     setCode("");
-     if (isUpdatingFromServer.current) {
+    if (isUpdatingFromServer.current) {
       isUpdatingFromServer.current = false;
       return;
     }
@@ -116,6 +122,8 @@ export default function RoomIdPage({
         codeChange: "",
       })
     );
+  }
+  function setNewQuestion(){
 
   }
 
@@ -162,6 +170,7 @@ export default function RoomIdPage({
               <Users className="w-3 h-3" />
               {users.length} online
             </Badge>
+        <ModeToggle/>
           </div>
 
           <div className="flex items-center gap-2">
@@ -198,6 +207,9 @@ export default function RoomIdPage({
                   <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                     Easy
                   </Badge>
+                  <Button size={'sm'} onClick={setNewQuestion}>
+                    Set New Question
+                  </Button>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
