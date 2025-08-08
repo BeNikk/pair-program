@@ -12,24 +12,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { User, Hash, ArrowRight, Code2, Terminal } from "lucide-react";
+import {  Hash, ArrowRight, Code2, Terminal } from "lucide-react";
 import { ModeToggle } from "@/components/theme-switcher";
 
 export default function Home() {
   const router = useRouter();
   const [room, setRoom] = useState("");
-  const [username, setUsername] = useState("");
   const [err, setErr] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   function validate() {
     if (!room || room.trim().length < 2)
       return "Room name must be at least 2 characters";
-    if (!username || username.trim().length < 2)
-      return "Username must be at least 2 characters";
-    return "";
   }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
@@ -40,15 +34,14 @@ export default function Home() {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     router.push(
-      `/room/${encodeURIComponent(room.trim())}?username=${encodeURIComponent(
-        username.trim()
+      `/room/${encodeURIComponent(room.trim())}
       )}`
     );
   }
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-foreground flex flex-col items-center justify-center px-6 py-12 relative">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
       <div className="absolute top-6 right-6 z-10">
         <ModeToggle /> 
@@ -114,25 +107,7 @@ export default function Home() {
                     placeholder="frontend-interview"
                     className="h-11 border-gray-300 dark:border-gray-700 focus:border-black dark:focus:border-white transition-colors"
                   />
-                </div>
-
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="username"
-                    className="flex items-center gap-2 text-sm font-medium"
-                  >
-                    <User className="w-4 h-4" />
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="john_doe"
-                    className="h-11 border-gray-300 dark:border-gray-700 focus:border-black dark:focus:border-white transition-colors"
-                  />
-                </div>
-
+                </div>  
                 {err && (
                   <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-md">
                     <p className="text-sm text-red-600 dark:text-red-400">
@@ -145,6 +120,9 @@ export default function Home() {
                   type="submit"
                   disabled={isLoading}
                   className="w-full h-11 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 dark:text-black text-white font-medium transition-colors"
+                  onClick={()=>{
+                    router.push(`/room/${room}`)
+                  }}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -186,7 +164,7 @@ export default function Home() {
               </div>
               <div className="text-gray-500 dark:text-gray-500">
                 {" "}
-                User: {username || "anonymous"}
+                User: Anonymous
               </div>
               <div className="h-px bg-gray-200 dark:bg-gray-800 my-4"></div>
 
@@ -212,7 +190,7 @@ export default function Home() {
                   </span>{" "}
                   <span className="text-gray-500">=</span>{" "}
                   <span className="text-green-600 dark:text-green-400">
-                    &quot;{username || "developer"}&quot;
+                    &quot;developer&quot;
                   </span>
                 </div>
 
@@ -239,7 +217,7 @@ export default function Home() {
               <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {room && username ? "Ready to join" : "Enter details above"}
+                  {room ? "Ready to join" : "Enter details above"}
                 </span>
               </div>
             </div>
