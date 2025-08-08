@@ -4,5 +4,6 @@ export type Room = {
     clients: Set<WebSocket>;
     code: string;
     users: Map<WebSocket, string>;
+    question?: any;
   };
 };
