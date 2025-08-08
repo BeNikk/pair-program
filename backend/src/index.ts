@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { setupWebSocket } from "./ws/socket";
 
 dotenv.config();
-const PORT = 3000;
+const PORT = 8080;
 const server = http.createServer(app);
 
 setupWebSocket(server);
