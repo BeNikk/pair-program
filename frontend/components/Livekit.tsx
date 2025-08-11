@@ -5,6 +5,7 @@ import {
   RoomAudioRenderer,
   useTracks,
   RoomContext,
+  useParticipants,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
@@ -83,6 +84,7 @@ export default function LiveKitComponent({
 }
 
 function MyVideoConference() {
+  const participants = useParticipants();
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
@@ -90,23 +92,34 @@ function MyVideoConference() {
     ],
     { onlySubscribed: false }
   );
+  const quotes = [
+    "First, solve the problem. Then, write the code.  John Johnson",
+    "Programs must be written for people to read, and only incidentally for machines to execute.  Harold Abelson",
+    "Code is like humor. When you have to explain it, its bad.  Cory House",
+    "Simplicity is the soul of efficiency.  Austin Freeman",
+    "Talk is cheap. Show me the code. Linus Torvalds",
+  ];
+
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: "10px",
-      }}
-    >
-      {tracks.map((track) => (
-        <ParticipantTile
-          key={track.publication?.trackSid || Math.random()}
-          trackRef={track}
-          className="rounded-lg overflow-hidden shadow-md border border-slate-200 dark:border-slate-600 w-[200px] h-[150px] flex-shrink-0"
-        />
-      ))}
+    <div className="flex h-full gap-4">
+      <div className="flex flex-wrap gap-2">
+        {tracks.map((track) => (
+          <ParticipantTile
+            key={track.publication?.trackSid || Math.random()}
+            trackRef={track}
+            className="rounded-lg overflow-hidden shadow-md border border-slate-200 dark:border-slate-600 w-[200px] h-[150px]"
+          />
+        ))}
+      </div>
+
+      {participants.length < 6 && (
+        <div className="flex-1 flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-lg p-4 text-center text-slate-700 dark:text-slate-200 italic shadow-md">
+          {randomQuote}
+        </div>
+      )}
     </div>
+
   );
 }
