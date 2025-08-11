@@ -1,10 +1,14 @@
 # pair-program
-Program with your friends
+Discuss, Solve and Code together with your friends.
 
-This Project is a simple implementation of Websockets, using ws library.
+Tech Stack
+- Real time updates using Web Sockets (ws library).
+- Livekit for Audio and Video integration.
+- Express + Typescript for the backend
+- Nextjs with tailwind css
 
 ## Join rooms
 ![Home](./frontend/public/image.png)
 
 ## Code Together
-![Room](./frontend/public/image-1.png)
+![Room](./frontend/public/code-together.png)
