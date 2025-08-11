@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModeToggle } from "@/components/theme-switcher";
+import { toast } from "sonner";
 
 export default function RoomIdPage({
   params,
@@ -56,6 +57,7 @@ export default function RoomIdPage({
         case "USER_JOINED":
           console.log(users);
           setUsers((prevUsers) => [...prevUsers, data.userName]);
+          toast.success(`${data.userName} joined`);
           console.log(users);
           break;
         // case "QUESTION_UPDATE":
