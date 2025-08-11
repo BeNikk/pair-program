@@ -38,7 +38,7 @@ export default function RoomIdPage({
   // const [question, setQuestion] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
+    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use ws://localhost:8080
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
