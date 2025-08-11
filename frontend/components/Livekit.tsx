@@ -1,7 +1,6 @@
 "use client";
 import {
   ControlBar,
-  GridLayout,
   ParticipantTile,
   RoomAudioRenderer,
   useTracks,
@@ -23,14 +22,11 @@ export default function LiveKitComponent({
   const [room] = useState(
     () =>
       new Room({
-        // Optimize video quality for each participant's screen
         adaptiveStream: true,
-        // Enable automatic audio/video quality optimization
         dynacast: true,
       })
   );
 
-  // Connect to room
   useEffect(() => {
     let mounted = true;
 
@@ -39,7 +35,6 @@ export default function LiveKitComponent({
         if (mounted) {
           await room.connect(serverUrl, token);
         }
-        // Enable camera and microphone after connecting
         await room.localParticipant.enableCameraAndMicrophone();
       } catch (error) {
         console.error("Failed to connect to room:", error);
@@ -56,33 +51,27 @@ export default function LiveKitComponent({
 
   return (
     <RoomContext.Provider value={room}>
-      <div 
-        data-lk-theme="default" 
-        style={{ 
-          height: height,
-          width: "100%",
-          position: "relative",
-          backgroundColor: "#1f2937" // Dark background to match your theme
-        }}
+      <div
+        data-lk-theme="default"
+        className="w-full rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col"
+        style={{ height }}
       >
-        {/* Custom video conference component */}
-        <MyVideoConference height={height} />
-        {/* The RoomAudioRenderer takes care of room-wide audio */}
+        {/* Video Grid */}
+        <div className="flex-1 p-2 overflow-auto">
+          <MyVideoConference />
+        </div>
+
+        {/* Audio Renderer */}
         <RoomAudioRenderer />
-        {/* Controls positioned at the bottom */}
-        <div style={{ 
-          position: "absolute", 
-          bottom: "8px", 
-          left: "50%", 
-          transform: "translateX(-50%)",
-          zIndex: 10
-        }}>
-          <ControlBar 
+
+        {/* Control Bar Section */}
+        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-2 border-t border-slate-200 dark:border-slate-700">
+          <ControlBar
             variation="minimal"
             controls={{
               camera: true,
               microphone: true,
-              screenShare: false, // Disable screen share for cleaner UI
+              screenShare: false,
               chat: false,
               settings: false,
             }}
@@ -93,8 +82,7 @@ export default function LiveKitComponent({
   );
 }
 
-function MyVideoConference({ height }: { height: string }) {
-  // Get all camera tracks from participants
+function MyVideoConference() {
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
@@ -104,22 +92,21 @@ function MyVideoConference({ height }: { height: string }) {
   );
 
   return (
-    <GridLayout
-      tracks={tracks}
+    <div
       style={{
-        height: "calc(100% - 48px)", // Leave space for control bar
-        width: "100%",
-        padding: "8px",
-        gap: "8px",
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: "10px",
       }}
     >
-      {/* ParticipantTile will render each video as a small tile */}
-      <ParticipantTile 
-        style={{
-          borderRadius: "8px",
-          overflow: "hidden",
-        }}
-      />
-    </GridLayout>
+      {tracks.map((track) => (
+        <ParticipantTile
+          key={track.publication?.trackSid || Math.random()}
+          trackRef={track}
+          className="rounded-lg overflow-hidden shadow-md border border-slate-200 dark:border-slate-600 w-[200px] h-[150px] flex-shrink-0"
+        />
+      ))}
+    </div>
   );
 }

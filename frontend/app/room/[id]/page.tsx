@@ -44,7 +44,6 @@ export default function RoomIdPage({
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data);
 
       switch (data.type) {
         case "USER_LIST":
@@ -57,10 +56,8 @@ export default function RoomIdPage({
           }
           break;
         case "USER_JOINED":
-          console.log(users);
           setUsers((prevUsers) => [...prevUsers, data.userName]);
           toast.success(`${data.userName} joined`);
-          console.log(users);
           break;
         // case "QUESTION_UPDATE":
         //   setQuestion(data.question);
@@ -93,7 +90,6 @@ export default function RoomIdPage({
       `http://localhost:8080/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
     );
     const data = await res.json();
-    console.log(data);
     setToken(data.token);
     setJoined(true);
   };
