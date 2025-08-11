@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModeToggle } from "@/components/theme-switcher";
+import { toast } from "sonner";
 
 export default function RoomIdPage({
   params,
@@ -32,15 +33,16 @@ export default function RoomIdPage({
   const [users, setUsers] = useState<string[]>([]);
   const [code, setCode] = useState("// Start coding...");
   const isUpdatingFromServer = useRef(false);
-  const [question, setQuestion] = useState(null);
+  // const [question, setQuestion] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("wss://pair-program-1.onrender.com");
+    const ws = new WebSocket("ws://localhost:8080");
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log(data);
 
       switch (data.type) {
         case "USER_LIST":
@@ -52,9 +54,15 @@ export default function RoomIdPage({
             setCode(data.code);
           }
           break;
-        case "QUESTION_UPDATE":
-          setQuestion(data.question);
+        case "USER_JOINED":
+          console.log(users);
+          setUsers((prevUsers) => [...prevUsers, data.userName]);
+          toast.success(`${data.userName} joined`);
+          console.log(users);
           break;
+        // case "QUESTION_UPDATE":
+        //   setQuestion(data.question);
+        //   break;
         default:
           break;
       }
@@ -123,8 +131,8 @@ export default function RoomIdPage({
       })
     );
   }
-  function setNewQuestion(){
-
+  function setNewQuestion() {
+    //to be implemented
   }
 
   if (!joined) {
@@ -170,7 +178,7 @@ export default function RoomIdPage({
               <Users className="w-3 h-3" />
               {users.length} online
             </Badge>
-        <ModeToggle/>
+            <ModeToggle />
           </div>
 
           <div className="flex items-center gap-2">
@@ -207,7 +215,7 @@ export default function RoomIdPage({
                   <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                     Easy
                   </Badge>
-                  <Button size={'sm'} onClick={setNewQuestion}>
+                  <Button size={"sm"} onClick={setNewQuestion}>
                     Set New Question
                   </Button>
                 </div>
