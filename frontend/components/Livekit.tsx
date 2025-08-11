@@ -9,7 +9,7 @@ import {
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 const serverUrl = "wss://pair-programmer-h24bxg09.livekit.cloud";
 
@@ -57,15 +57,12 @@ export default function LiveKitComponent({
         className="w-full rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col"
         style={{ height }}
       >
-        {/* Video Grid */}
         <div className="flex-1 p-2 overflow-auto">
           <MyVideoConference />
         </div>
 
-        {/* Audio Renderer */}
         <RoomAudioRenderer />
 
-        {/* Control Bar Section */}
         <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-2 border-t border-slate-200 dark:border-slate-700">
           <ControlBar
             variation="minimal"
@@ -99,9 +96,9 @@ function MyVideoConference() {
     "Simplicity is the soul of efficiency.  Austin Freeman",
     "Talk is cheap. Show me the code. Linus Torvalds",
   ];
-
-  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
+  const randomQuote = useMemo(() => {
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }, []);
   return (
     <div className="flex h-full gap-4">
       <div className="flex flex-wrap gap-2">
@@ -120,6 +117,5 @@ function MyVideoConference() {
         </div>
       )}
     </div>
-
   );
 }
