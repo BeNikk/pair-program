@@ -33,7 +33,6 @@ export default function RoomIdPage({
   const [joined, setJoined] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
   const [code, setCode] = useState("// Start coding...");
-  const isUpdatingFromServer = useRef(false);
   const [token, setToken] = useState<string | null>(null);
   // const [question, setQuestion] = useState(null);
 
@@ -51,7 +50,6 @@ export default function RoomIdPage({
           break;
         case "CODE_UPDATE":
           if (data.code !== code) {
-            isUpdatingFromServer.current = true;
             setCode(data.code);
           }
           break;
@@ -99,10 +97,6 @@ export default function RoomIdPage({
 
     setCode(value);
 
-    if (isUpdatingFromServer.current) {
-      isUpdatingFromServer.current = false;
-      return;
-    }
 
     socket?.send(
       JSON.stringify({
@@ -122,10 +116,6 @@ export default function RoomIdPage({
   };
   function clearCode() {
     setCode("");
-    if (isUpdatingFromServer.current) {
-      isUpdatingFromServer.current = false;
-      return;
-    }
 
     socket?.send(
       JSON.stringify({
