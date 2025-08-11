@@ -87,7 +87,7 @@ export default function RoomIdPage({
       );
     }
     const res = await fetch(
-      `http://localhost:8080/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
+      `https://pair-program-1.onrender.com/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
     );
     const data = await res.json();
     setToken(data.token);
