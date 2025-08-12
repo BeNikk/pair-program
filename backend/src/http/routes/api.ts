@@ -11,7 +11,7 @@ apiRouter.get("/test", (req: Request, res: Response) => {
   res.status(200).json({ message: "This is a test route" });
 });
 
-apiRouter.post("/chat/question", async (req: Request, res: Response) => {
+apiRouter.get("/chat/question", async (req: Request, res: Response) => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",

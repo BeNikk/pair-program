@@ -80,7 +80,7 @@ export function setupWebSocket(server: http.Server) {
       } else if (parsedData.type === "LEAVE_ROOM" && currentRoomId) {
         leaveRoom(ws, currentRoomId, currentUserName);
         currentRoomId = null;
-      } else if (parsedData.type === "SET_QUESTION") {
+      } else if (parsedData.type === "QUESTION_CHANGE") {
         const { question } = parsedData;
         if (currentRoomId && rooms[currentRoomId]) {
           rooms[currentRoomId]!.question = question;
