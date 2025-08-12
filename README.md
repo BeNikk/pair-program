@@ -12,3 +12,6 @@ Tech Stack
 
 ## Code Together
 ![Room](./frontend/public/code-together.png)
+
+## AI Question generation (using Gemini)
+![Question](./frontend/public/question.png)
