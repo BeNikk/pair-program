@@ -25,8 +25,10 @@ apiRouter.post("/chat/question", async (req: Request, res: Response) => {
             title: { type: Type.STRING },
             description: { type: Type.STRING },
             difficulty: { type: Type.STRING },
-            exampleInput: { type: Type.STRING },
-            exampleOutput: { type: Type.STRING },
+            exampleInputFirst: { type: Type.STRING },
+            exampleOutputFirst: { type: Type.STRING },
+            exampleInputSecond: {type : Type.STRING},
+            exampleOutputSecond: {type: Type.STRING},
             constraints: {
               type: Type.ARRAY,
               items: { type: Type.STRING }
@@ -36,8 +38,10 @@ apiRouter.post("/chat/question", async (req: Request, res: Response) => {
             "title",
             "description",
             "difficulty",
-            "exampleInput",
-            "exampleOutput",
+            "exampleInputFirst",
+            "exampleOutputFirst",
+            "exampleInputSecond",
+            "exampleOutputSecond",
             "constraints"
           ]
         }
