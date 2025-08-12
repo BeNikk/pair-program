@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Editor } from "@monaco-editor/react";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   Users,
   Play,
@@ -9,9 +9,9 @@ import {
   Settings,
   Copy,
   CheckCircle,
-  XCircle,
   Clock,
   User,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModeToggle } from "@/components/theme-switcher";
 import { toast } from "sonner";
 import LiveKitComponent from "@/components/Livekit";
+import { getDifficultyColor } from "@/lib/utils";
+import { Question } from "@/lib/type";
 
 export default function RoomIdPage({
   params,
@@ -34,10 +36,11 @@ export default function RoomIdPage({
   const [users, setUsers] = useState<string[]>([]);
   const [code, setCode] = useState("// Start coding...");
   const [token, setToken] = useState<string | null>(null);
-  // const [question, setQuestion] = useState(null);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [loadingQuestion, setLoadingQuestion] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use ws://localhost:8080
+    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
@@ -57,9 +60,9 @@ export default function RoomIdPage({
           setUsers((prevUsers) => [...prevUsers, data.userName]);
           toast.success(`${data.userName} joined`);
           break;
-        // case "QUESTION_UPDATE":
-        //   setQuestion(data.question);
-        //   break;
+        case "QUESTION_UPDATE":
+          setQuestion(data.question);
+          break;
         default:
           break;
       }
@@ -97,7 +100,6 @@ export default function RoomIdPage({
 
     setCode(value);
 
-
     socket?.send(
       JSON.stringify({
         type: "CODE_CHANGE",
@@ -125,8 +127,34 @@ export default function RoomIdPage({
       })
     );
   }
-  function setNewQuestion() {
-    //to be implemented
+  async function setNewQuestion() {
+    setLoadingQuestion(true);
+    try {
+      const res = await fetch("http://pair-program-1.onrender.com/api/chat/question");
+      const response = await res.json();
+
+      if (response.success) {
+        const newQuestion = response.data;
+        setQuestion(newQuestion);
+
+        socket?.send(
+          JSON.stringify({
+            type: "QUESTION_CHANGE",
+            roomId: id,
+            question: newQuestion,
+          })
+        );
+
+        toast.success("New question generated!");
+      } else {
+        toast.error("Failed to generate question");
+      }
+    } catch (error) {
+      console.error("Error fetching question:", error);
+      toast.error("Failed to fetch question");
+    } finally {
+      setLoadingQuestion(false);
+    }
   }
 
   if (!joined) {
@@ -219,108 +247,101 @@ export default function RoomIdPage({
           <div className="h-full flex flex-col">
             <div className="border-b border-gray-200 dark:border-gray-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">1. Two Sum</h2>
+                <h2 className="text-xl font-bold">
+                  {question ? question.title : "No Question Loaded"}
+                </h2>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                    Easy
-                  </Badge>
-                  <Button size={"sm"} onClick={setNewQuestion}>
-                    Set New Question
+                  {question && (
+                    <Badge className={getDifficultyColor(question.difficulty)}>
+                      {question.difficulty}
+                    </Badge>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={setNewQuestion}
+                    disabled={loadingQuestion}
+                  >
+                    {loadingQuestion ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : null}
+                    {loadingQuestion ? "Loading..." : "Set New Question"}
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Accepted: 4.2M
+              {question && (
+                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Question loaded
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <XCircle className="w-4 h-4 text-red-500" />
-                  Submissions: 8.1M
-                </div>
-              </div>
+              )}
             </div>
 
             <ScrollArea className="flex-1 p-6">
-              <div className="space-y-6">
-                <div>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Given an array of integers{" "}
-                    <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
-                      nums
-                    </code>{" "}
-                    and an integer{" "}
-                    <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
-                      target
-                    </code>
-                    , return{" "}
-                    <em>
-                      indices of the two numbers such that they add up to target
-                    </em>
-                    .
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                    You may assume that each input would have{" "}
-                    <strong>exactly one solution</strong>, and you may not use
-                    the same element twice.
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
-                    You can return the answer in any order.
-                  </p>
-                </div>
+              {question ? (
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {question.description}
+                    </p>
+                  </div>
 
-                <div>
-                  <h3 className="font-semibold mb-3">Example 1:</h3>
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm">
-                    <div>
-                      <strong>Input:</strong> nums = [2,7,11,15], target = 9
-                    </div>
-                    <div>
-                      <strong>Output:</strong> [0,1]
-                    </div>
-                    <div>
-                      <strong>Explanation:</strong> Because nums[0] + nums[1] ==
-                      9, we return [0, 1].
+                  <div>
+                    <h3 className="font-semibold mb-3">Example 1:</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm">
+                      <div>
+                        <strong>Input:</strong> {question.exampleInputFirst}
+                      </div>
+                      <div>
+                        <strong>Output:</strong> {question.exampleOutputFirst}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="font-semibold mb-3">Example 2:</h3>
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm">
-                    <div>
-                      <strong>Input:</strong> nums = [3,2,4], target = 6
-                    </div>
-                    <div>
-                      <strong>Output:</strong> [1,2]
-                    </div>
+                  {question.exampleInputSecond &&
+                    question.exampleOutputSecond && (
+                      <div>
+                        <h3 className="font-semibold mb-3">Example 2:</h3>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm">
+                          <div>
+                            <strong>Input:</strong>{" "}
+                            {question.exampleInputSecond}
+                          </div>
+                          <div>
+                            <strong>Output:</strong>{" "}
+                            {question.exampleOutputSecond}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                  <div>
+                    <h3 className="font-semibold mb-3">Constraints:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                      {question.constraints.map((constraint, index) => (
+                        <li key={index}>
+                          <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
+                            {constraint}
+                          </code>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-
-                <div>
-                  <h3 className="font-semibold mb-3">Constraints:</h3>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-                    <li>
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
-                        2 ≤ nums.length ≤ 10⁴
-                      </code>
-                    </li>
-                    <li>
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
-                        -10⁹ ≤ nums[i] ≤ 10⁹
-                      </code>
-                    </li>
-                    <li>
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm">
-                        -10⁹ ≤ target ≤ 10⁹
-                      </code>
-                    </li>
-                    <li>
-                      <strong>Only one valid answer exists.</strong>
-                    </li>
-                  </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    No question loaded yet
+                  </p>
+                  <Button onClick={setNewQuestion} disabled={loadingQuestion}>
+                    {loadingQuestion ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : null}
+                    {loadingQuestion ? "Loading..." : "Load First Question"}
+                  </Button>
                 </div>
-              </div>
+              )}
             </ScrollArea>
           </div>
         </div>
