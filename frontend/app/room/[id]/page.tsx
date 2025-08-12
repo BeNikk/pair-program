@@ -40,7 +40,7 @@ export default function RoomIdPage({
   const [loadingQuestion, setLoadingQuestion] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
+    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
@@ -130,7 +130,7 @@ export default function RoomIdPage({
   async function setNewQuestion() {
     setLoadingQuestion(true);
     try {
-      const res = await fetch("http://localhost:8080/api/chat/question");
+      const res = await fetch("http://pair-program-1.onrender.com/api/chat/question");
       const response = await res.json();
 
       if (response.success) {
