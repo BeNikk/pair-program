@@ -80,8 +80,6 @@ apiRouter.post("/chat/answer", async (req: Request, res: Response) => {
         - Suggest optimizations and alternative approaches.
         - Keep the tone encouraging and educational.
         - Return the output in **exactly** the JSON format given in the schema.
-        - You do NOT need to list or invent constraints — leave that field empty if not provided.
-
         Question:
         ${question}
 
@@ -101,7 +99,6 @@ apiRouter.post("/chat/answer", async (req: Request, res: Response) => {
           propertyOrdering: [
             "title",
             "description",
-            "difficulty",
             "analysis",
             "improvements",
           ],

@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import LiveKitComponent from "@/components/Livekit";
 import { getDifficultyColor } from "@/lib/utils";
 import { Question, SubmissionResult } from "@/lib/type";
+import SubmissionModal from "@/components/submissionModal";
 
 export default function RoomIdPage({
   params,
@@ -39,6 +40,7 @@ export default function RoomIdPage({
   const [question, setQuestion] = useState<Question | null>(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+  const [openFeedback,setOpenFeedback] = useState<boolean>(false);
 
 
   useEffect(() => {
@@ -65,7 +67,10 @@ export default function RoomIdPage({
         case "QUESTION_UPDATE":
           setQuestion(data.question);
           break;
-        
+        case "SOLUTION_REVIEW":
+          setSubmissionResult(data.solution);
+          setOpenFeedback(true);
+          break;
         default:
           break;
       }
@@ -172,7 +177,7 @@ async function handleSubmit() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        question,
+        question:question.description,
         solution: code,
       }),
     });
@@ -184,8 +189,14 @@ async function handleSubmit() {
 
       console.log("Tutor feedback:", data.data);
       setSubmissionResult(data.data);
-
-      alert(`Tutor says:\n\n${data.data.analysis}\n\nImprovements:\n${data.data.improvements}`);
+      setOpenFeedback(true);
+      socket?.send(
+        JSON.stringify({
+          type:"SOLUTION_REVIEW",
+          solution:data.data,
+          roomId:id,
+        })
+      )
     } else {
       toast.error("Failed to review solution", { id: "submit" });
     }
@@ -447,6 +458,10 @@ async function handleSubmit() {
               </div>
             </div>
           </div>
+            <div>
+              <SubmissionModal feedbackData = {submissionResult} openFeedback={openFeedback} setOpenFeedback={setOpenFeedback} />
+            </div>
+
         </div>
       </div>
     </div>
