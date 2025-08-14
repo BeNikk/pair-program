@@ -8,3 +8,12 @@ export interface Question {
   exampleOutputSecond: string;
   constraints: string[];
 }
+export interface SubmissionResult {
+  success: boolean;
+  title:string;
+  description:string;
+  difficulty:string;
+  analysis:string;
+  improvements:string;
+
+}
