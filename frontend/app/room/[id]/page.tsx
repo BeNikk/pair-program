@@ -22,7 +22,7 @@ import { ModeToggle } from "@/components/theme-switcher";
 import { toast } from "sonner";
 import LiveKitComponent from "@/components/Livekit";
 import { getDifficultyColor } from "@/lib/utils";
-import { Question } from "@/lib/type";
+import { Question, SubmissionResult } from "@/lib/type";
 
 export default function RoomIdPage({
   params,
@@ -38,9 +38,11 @@ export default function RoomIdPage({
   const [token, setToken] = useState<string | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+
 
   useEffect(() => {
-    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
+    const ws = new WebSocket("ws://localhost:8080"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
@@ -63,6 +65,7 @@ export default function RoomIdPage({
         case "QUESTION_UPDATE":
           setQuestion(data.question);
           break;
+        
         default:
           break;
       }
@@ -88,7 +91,7 @@ export default function RoomIdPage({
       );
     }
     const res = await fetch(
-      `https://pair-program-1.onrender.com/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
+      `http://localhost:8080/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
     );
     const data = await res.json();
     setToken(data.token);
@@ -130,7 +133,7 @@ export default function RoomIdPage({
   async function setNewQuestion() {
     setLoadingQuestion(true);
     try {
-      const res = await fetch("http://pair-program-1.onrender.com/api/chat/question");
+      const res = await fetch("http://localhost:8080/api/chat/question");
       const response = await res.json();
 
       if (response.success) {
@@ -156,6 +159,42 @@ export default function RoomIdPage({
       setLoadingQuestion(false);
     }
   }
+async function handleSubmit() {
+  if (!question) {
+    toast.error("No question loaded to submit!");
+    return;
+  }
+
+  try {
+    toast.loading("Submitting solution for review...", { id: "submit" });
+
+    const res = await fetch("http://localhost:8080/api/chat/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question,
+        solution: code,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      toast.success("Solution reviewed!", { id: "submit" });
+
+      console.log("Tutor feedback:", data.data);
+      setSubmissionResult(data.data);
+
+      alert(`Tutor says:\n\n${data.data.analysis}\n\nImprovements:\n${data.data.improvements}`);
+    } else {
+      toast.error("Failed to review solution", { id: "submit" });
+    }
+  } catch (error) {
+    console.error("Error submitting solution:", error);
+    toast.error("Error while submitting", { id: "submit" });
+  }
+}
+
 
   if (!joined) {
     return (
@@ -404,7 +443,7 @@ export default function RoomIdPage({
                   <Play className="w-4 h-4 mr-1" />
                   Run Code
                 </Button>
-                <Button size="sm">Submit</Button>
+                <Button size="sm" onClick={handleSubmit}>Submit</Button>
               </div>
             </div>
           </div>
