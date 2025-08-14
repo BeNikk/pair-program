@@ -15,3 +15,6 @@ Tech Stack
 
 ## AI Question generation (using Gemini)
 ![Question](./frontend/public/question.png)
+
+## Review your solution
+![Solution](./frontend/public/solution.png)
