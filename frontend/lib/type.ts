@@ -17,3 +17,7 @@ export interface SubmissionResult {
   improvements:string;
 
 }
+export interface apiInterface {
+  ws:URL,
+  http:URL
+}
