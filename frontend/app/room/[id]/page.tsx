@@ -24,6 +24,7 @@ import LiveKitComponent from "@/components/Livekit";
 import { getDifficultyColor } from "@/lib/utils";
 import { Question, SubmissionResult } from "@/lib/type";
 import SubmissionModal from "@/components/submissionModal";
+import api from "@/lib/api";
 
 export default function RoomIdPage({
   params,
@@ -44,7 +45,7 @@ export default function RoomIdPage({
 
 
   useEffect(() => {
-    const ws = new WebSocket("wss://pair-program-1.onrender.com"); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
+    const ws = new WebSocket(api.ws); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
@@ -96,7 +97,7 @@ export default function RoomIdPage({
       );
     }
     const res = await fetch(
-      `https://pair-program-1.onrender.com/livekit/getToken?roomName=${id}&userName=${userName.trim()}`
+      `${api.http}livekit/getToken?roomName=${id}&userName=${userName.trim()}`
     );
     const data = await res.json();
     setToken(data.token);
@@ -138,7 +139,7 @@ export default function RoomIdPage({
   async function setNewQuestion() {
     setLoadingQuestion(true);
     try {
-      const res = await fetch("https://pair-program-1.onrender.com/api/chat/question");
+      const res = await fetch(`${api.http}api/chat/question`);
       const response = await res.json();
 
       if (response.success) {
@@ -173,7 +174,7 @@ async function handleSubmit() {
   try {
     toast.loading("Submitting solution for review...", { id: "submit" });
 
-    const res = await fetch("https://pair-program-1.onrender.com/api/chat/answer", {
+    const res = await fetch(`${api.http}api/chat/answer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -187,7 +188,6 @@ async function handleSubmit() {
     if (data.success) {
       toast.success("Solution reviewed!", { id: "submit" });
 
-      console.log("Tutor feedback:", data.data);
       setSubmissionResult(data.data);
       setOpenFeedback(true);
       socket?.send(
