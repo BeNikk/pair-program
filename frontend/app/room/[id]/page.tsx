@@ -25,7 +25,7 @@ import { getDifficultyColor } from "@/lib/utils";
 import { Question, SubmissionResult } from "@/lib/type";
 import SubmissionModal from "@/components/submissionModal";
 import api from "@/lib/api";
-
+import useSound from "use-sound";
 export default function RoomIdPage({
   params,
 }: {
@@ -42,12 +42,13 @@ export default function RoomIdPage({
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [openFeedback,setOpenFeedback] = useState<boolean>(false);
-
+  const [playSound] = useSound("/join.mp3");
 
   useEffect(() => {
     const ws = new WebSocket(api.ws); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
     ws.onopen = () => {
       console.log("WebSocket connected");
+      console.log(api.ws);
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -64,6 +65,7 @@ export default function RoomIdPage({
         case "USER_JOINED":
           setUsers((prevUsers) => [...prevUsers, data.userName]);
           toast.success(`${data.userName} joined`);
+          playSound();
           break;
         case "QUESTION_UPDATE":
           setQuestion(data.question);
@@ -102,6 +104,7 @@ export default function RoomIdPage({
     const data = await res.json();
     setToken(data.token);
     setJoined(true);
+    playSound();
   };
 
   const handleCodeChange = (value: string | undefined) => {
