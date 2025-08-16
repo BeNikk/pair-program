@@ -2,7 +2,7 @@
 Discuss, Solve and Code together with your friends.
 
 Tech Stack
-- Real time updates using Web Sockets (ws library).
+- Real time updates using Web Sockets (ws library) and CRDT (using Y.js). 
 - Livekit for Audio and Video integration.
 - Express + Typescript for the backend
 - Nextjs with tailwind css
