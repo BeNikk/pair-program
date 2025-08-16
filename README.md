@@ -18,3 +18,6 @@ Tech Stack
 
 ## Review your solution
 ![Solution](./frontend/public/solution.png)
+
+## Conflict management
+Handled via Y.js (CRDT)
