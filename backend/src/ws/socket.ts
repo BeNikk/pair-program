@@ -13,7 +13,7 @@ export function setupWebSocket(server: http.Server) {
     const parsedUrl = url.parse(request.url || '', true);
     const roomId = parsedUrl.pathname?.slice(1) || '';
         if (roomId.startsWith('yjs-')) {
-      console.log('🟢 Yjs connection detected for room:', roomId);
+      console.log(' Yjs connection detected for room:', roomId);
       setupWSConnection(ws, request, { docName: roomId });
       return;
     }
