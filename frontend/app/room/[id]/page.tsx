@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Editor } from "@monaco-editor/react";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import {
   Users,
   Play,
@@ -21,11 +21,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModeToggle } from "@/components/theme-switcher";
 import { toast } from "sonner";
 import LiveKitComponent from "@/components/Livekit";
-import { getDifficultyColor } from "@/lib/utils";
+import { getDifficultyColor, getInitials } from "@/lib/utils";
 import { Question, SubmissionResult } from "@/lib/type";
 import SubmissionModal from "@/components/submissionModal";
 import api from "@/lib/api";
 import useSound from "use-sound";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { MonacoBinding } from "y-monaco";
 export default function RoomIdPage({
   params,
 }: {
@@ -36,16 +39,92 @@ export default function RoomIdPage({
   const [userName, setUserName] = useState("");
   const [joined, setJoined] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
-  const [code, setCode] = useState("// Start coding...");
+  // const [code, setCode] = useState("// Start coding...");
   const [token, setToken] = useState<string | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
-  const [openFeedback,setOpenFeedback] = useState<boolean>(false);
+  const [openFeedback, setOpenFeedback] = useState<boolean>(false);
   const [playSound] = useSound("/join.mp3");
+  const ydoc = useMemo(() => new Y.Doc(), []);
+
+  const [editor, setEditor] = useState<any>(null);
+  const [provider, setProvider] = useState<WebsocketProvider | null>(null);
+  const [binding, setBinding] = useState<MonacoBinding | null>(null);
+  const [isYjsConnected, setIsYjsConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(api.ws); //for local dev use- ws://localhost:8080   for prod use-wss://pair-program-1.onrender.com
+    if (!id) return;
+    const yjsProvider = new WebsocketProvider(
+      api.ws.toString(),
+      `yjs-${id}`,
+      ydoc,
+      {
+        connect: true,
+      }
+    );
+    yjsProvider.on("status", (event: any) => {
+      console.log("Yjs status:", event.status);
+      setIsYjsConnected(event.status === "connected");
+    });
+
+    yjsProvider.on("connection-close", () => {
+      console.log("Yjs connection closed");
+      setIsYjsConnected(false);
+    });
+
+    yjsProvider.on("sync", (isSynced: boolean) => {
+      console.log("Yjs synced:", isSynced);
+    });
+
+    setProvider(yjsProvider);
+
+    return () => {
+      yjsProvider?.destroy();
+    };
+  }, [id, ydoc]);
+  useEffect(() => {
+    if (!provider || !editor || !ydoc) {
+      return;
+    }
+
+    console.log("Setting up Monaco binding...");
+
+    const ytext = ydoc.getText("monaco");
+    const model = editor.getModel();
+
+    if (!model) {
+      console.error("Monaco model not available");
+      return;
+    }
+
+    const monacoBinding = new MonacoBinding(
+      ytext,
+      model,
+      new Set([editor]),
+      provider.awareness
+    );
+
+    setBinding(monacoBinding);
+
+    if (ytext.length === 0) {
+      ytext.insert(0, "// Start coding...");
+    }
+
+    return () => {
+      monacoBinding?.destroy();
+    };
+  }, [ydoc, provider, editor]);
+  useEffect(() => {
+    return () => {
+      binding?.destroy();
+      provider?.destroy();
+      ydoc?.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const ws = new WebSocket(`${api.ws}${id}`);
     ws.onopen = () => {
       console.log("WebSocket connected");
       console.log(api.ws);
@@ -57,11 +136,11 @@ export default function RoomIdPage({
         case "USER_LIST":
           setUsers(data.users);
           break;
-        case "CODE_UPDATE":
-          if (data.code !== code) {
-            setCode(data.code);
-          }
-          break;
+        // case "CODE_UPDATE":
+        //   if (data.code !== code) {
+        //     setCode(data.code);
+        //   }
+        //   break;
         case "USER_JOINED":
           setUsers((prevUsers) => [...prevUsers, data.userName]);
           toast.success(`${data.userName} joined`);
@@ -107,38 +186,31 @@ export default function RoomIdPage({
     playSound();
   };
 
-  const handleCodeChange = (value: string | undefined) => {
-    if (!value) return;
+  // const handleCodeChange = (value: string | undefined) => {
+  //   if (!value) return;
 
-    setCode(value);
+  //   setCode(value);
 
-    socket?.send(
-      JSON.stringify({
-        type: "CODE_CHANGE",
-        roomId: id,
-        codeChange: value,
-      })
-    );
-  };
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-  function clearCode() {
-    setCode("");
+  //   socket?.send(
+  //     JSON.stringify({
+  //       type: "CODE_CHANGE",
+  //       roomId: id,
+  //       codeChange: value,
+  //     })
+  //   );
+  // };
 
-    socket?.send(
-      JSON.stringify({
-        type: "CODE_CHANGE",
-        roomId: id,
-        codeChange: "",
-      })
-    );
-  }
+  // function clearCode() {
+  //   setCode("");
+
+  //   socket?.send(
+  //     JSON.stringify({
+  //       type: "CODE_CHANGE",
+  //       roomId: id,
+  //       codeChange: "",
+  //     })
+  //   );
+  // }
   async function setNewQuestion() {
     setLoadingQuestion(true);
     try {
@@ -168,47 +240,46 @@ export default function RoomIdPage({
       setLoadingQuestion(false);
     }
   }
-async function handleSubmit() {
-  if (!question) {
-    toast.error("No question loaded to submit!");
-    return;
-  }
-
-  try {
-    toast.loading("Submitting solution for review...", { id: "submit" });
-
-    const res = await fetch(`${api.http}api/chat/answer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question:question.description,
-        solution: code,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      toast.success("Solution reviewed!", { id: "submit" });
-
-      setSubmissionResult(data.data);
-      setOpenFeedback(true);
-      socket?.send(
-        JSON.stringify({
-          type:"SOLUTION_REVIEW",
-          solution:data.data,
-          roomId:id,
-        })
-      )
-    } else {
-      toast.error("Failed to review solution", { id: "submit" });
+  async function handleSubmit() {
+    if (!question) {
+      toast.error("No question loaded to submit!");
+      return;
     }
-  } catch (error) {
-    console.error("Error submitting solution:", error);
-    toast.error("Error while submitting", { id: "submit" });
-  }
-}
 
+    try {
+      toast.loading("Submitting solution for review...", { id: "submit" });
+      const currentCode = ydoc.getText("monaco").toString();
+      const res = await fetch(`${api.http}api/chat/answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: question.description,
+          solution: currentCode,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Solution reviewed!", { id: "submit" });
+
+        setSubmissionResult(data.data);
+        setOpenFeedback(true);
+        socket?.send(
+          JSON.stringify({
+            type: "SOLUTION_REVIEW",
+            solution: data.data,
+            roomId: id,
+          })
+        );
+      } else {
+        toast.error("Failed to review solution", { id: "submit" });
+      }
+    } catch (error) {
+      console.error("Error submitting solution:", error);
+      toast.error("Error while submitting", { id: "submit" });
+    }
+  }
 
   if (!joined) {
     return (
@@ -411,7 +482,7 @@ async function handleSubmit() {
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={clearCode}>
+                <Button variant="outline" size="sm">
                   <RotateCcw className="w-4 h-4 mr-1" />
                   Reset
                 </Button>
@@ -426,8 +497,11 @@ async function handleSubmit() {
             <Editor
               height="100%"
               defaultLanguage="javascript"
-              value={code}
-              onChange={handleCodeChange}
+              // value={code}
+              // onChange={handleCodeChange}
+              onMount={(editor) => {
+                setEditor(editor);
+              }}
               theme="vs-dark"
               options={{
                 minimap: { enabled: false },
@@ -457,14 +531,19 @@ async function handleSubmit() {
                   <Play className="w-4 h-4 mr-1" />
                   Run Code
                 </Button>
-                <Button size="sm" onClick={handleSubmit}>Submit</Button>
+                <Button size="sm" onClick={handleSubmit}>
+                  Submit
+                </Button>
               </div>
             </div>
           </div>
-            <div>
-              <SubmissionModal feedbackData = {submissionResult} openFeedback={openFeedback} setOpenFeedback={setOpenFeedback} />
-            </div>
-
+          <div>
+            <SubmissionModal
+              feedbackData={submissionResult}
+              openFeedback={openFeedback}
+              setOpenFeedback={setOpenFeedback}
+            />
+          </div>
         </div>
       </div>
     </div>
