@@ -47,6 +47,7 @@ export default function RoomIdPage({
   const [openFeedback, setOpenFeedback] = useState<boolean>(false);
   const [playSound] = useSound("/join.mp3");
   const ydoc = useMemo(() => new Y.Doc(), []);
+
   const [editor, setEditor] = useState<any>(null);
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
   const [binding, setBinding] = useState<MonacoBinding | null>(null);
