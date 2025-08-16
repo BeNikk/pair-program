@@ -2,12 +2,22 @@ import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
 import { Room } from "../types/room";
 import { broadcast } from "../utils/broadCast";
+import { setupWSConnection } from "@y/websocket-server/utils";
+import url from "url";
 
 const rooms: Room = {};
 
 export function setupWebSocket(server: http.Server) {
   const wss = new WebSocketServer({ server });
-  wss.on("connection", function connection(ws) {
+  wss.on("connection", function connection(ws,request) {
+    const parsedUrl = url.parse(request.url || '', true);
+    const roomId = parsedUrl.pathname?.slice(1) || '';
+        if (roomId.startsWith('yjs-')) {
+      console.log('🟢 Yjs connection detected for room:', roomId);
+      setupWSConnection(ws, request, { docName: roomId });
+      return;
+    }
+
     let currentRoomId: string | null = null;
     let currentUserName: string | null = null;
     ws.on("error", console.error);
