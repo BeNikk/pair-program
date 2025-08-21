@@ -21,3 +21,6 @@ Tech Stack
 
 ## Conflict management
 Handled via Y.js (CRDT)
+
+## Running the app
+docker compose up (--build if image not there)
